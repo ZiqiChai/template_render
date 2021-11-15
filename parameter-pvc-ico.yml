@@ -1,0 +1,114 @@
+%YAML:1.0
+
+
+
+###############################################################################################
+#                                common generation parameters                                 #
+###############################################################################################
+change_Z_direction: 0
+
+
+
+###############################################################################################
+#                          icospherelayer generation node parameters                          #
+###############################################################################################
+R_Layers: 8
+Virtual_R_Layers: 5
+GeneralR_Layers: 40
+num_total_r_level: 40
+
+iterator_level: 5
+num_Templates_per_r_level: 2562 #5-2562 #4-642 #3-162 #2-42 #1-12
+
+Scale2millimeter: 1.0
+
+## left and right all included, and (r_end-r_start)/r_delta = R_Layers-1
+r_start: 300
+r_end: 475
+r_delta: 25
+
+## left and right all included, and (gamma_end-gamma_start)/gamma_delta = Virtual_R_Layers-1
+gamma_start: -30
+gamma_end: 30
+gamma_delta: 15
+
+
+
+###############################################################################################
+#                          UV sphere layer generation node parameters                         #
+###############################################################################################
+rMin: 300
+rMax: 475
+dr: 25
+alphaMin: -90
+alphaMax: 90
+da: 5.0
+betaMin: 0
+betaMax: 360
+db: 5.0
+gammaMin: 0
+gammaMax: 0
+dg: 0
+
+
+
+###############################################################################################
+#                                    path parameters                                          #
+#   path, all based on root folder of this project, without "/" as prefix or postfix.         #
+###############################################################################################
+## input ply file path
+stl_folder_name: stl
+stl_file_name: PVC_3hole_40mm.stl
+
+## output path /data/templates/object_name/template_image_folder_name
+template_folder_name: ../data/New_templates/PVC_3hole_40mm/PVC-ICO-6D/PVC_ICO5_r300-475-25-r8_gamma-30-30-15-g5_Z-NOT-change_mmdeg/PVC_3hole_40mm
+
+## for icosphere , octsphere
+## XML used to store coordinates of  icosohedron, octsphere
+xml_file_name: PVC_3hole_40mm_ico_sphere_coordinate.xml
+
+## for icosphere, octsphere, liner layer
+## TXT file used to store "img_Name, label, r, num, gamma, xyz
+txt_file_name: PVC_3hole_40mm_label.txt
+
+
+
+###############################################################################################
+#                           Random generation node parameters                                 #
+###############################################################################################
+total_num_random_templates: 1000
+int_generate_model: 2
+
+#/*****************generate use UV Layer 6D parameter****************************/
+#if(generate_model == 0)
+
+#/*****************random sampleing in UV Layer 6D generate**********************/
+#if(generate_model == 1)
+
+#/***********************really random 6D generate*******************************/
+#if(generate_model == 2)
+
+#/*******read coordinates from XML file and render from XYZ coordinates********/
+#if(generate_model == 3)
+input_xml_file_name_for_random_generater: data/templates/PVC_ICO3_r300-475-25-r8_gamma-30-30-15-g5_Z-change/PVC_3hole_40mm_ico_sphere_coordinate.xml
+
+## output parameters
+## all data should under the same main output folder, to make sure all path and folder exit and able to access
+## no path should be deeper than "random_scene_folder_name", that means we stored "random_scene_xml_file_name"
+## in folder ("random_scene_xml_file_name"+"/../")
+random_scene_folder_name: ../data/test_scene/PVC_3hole_40mm/PVC_Random5250_r300-475-1-r175_alpha0-90_beta0-360_gamma-30-30_Z-change_mmdeg/PVC_3hole_40mm
+random_scene_xml_file_name: test_scene_PVC_3hole_40mm.xml
+random_scene_txt_file_name: test_scene_PVC_3hole_40mm.txt
+
+
+
+###############################################################################################
+#                    camera intrinsic parameter for render templates                          #
+###############################################################################################
+image_width: 640
+image_height: 480
+
+fx: 611.8307495117188
+fy: 612.1018676757812
+cx: 313.739990234375
+cy: 234.52378845214844
