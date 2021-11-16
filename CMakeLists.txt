@@ -99,8 +99,8 @@ target_link_libraries(ico_render_6d_WxH ${catkin_LIBRARIES} ${OpenCV_LIBS} ${OPE
 
 #OCT Sphere Render for 6D template generation
 
-add_executable(oct_render_6d src/OCT_Sphere_Render_6D.cpp src/libs/octsphere.cc)
-target_link_libraries(oct_render_6d ${catkin_LIBRARIES} ${OpenCV_LIBS} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} config render_common)
+add_executable(oct_render_6d_original src/OCT_Sphere_Render_6D_original.cpp src/libs/octsphere.cc)
+target_link_libraries(oct_render_6d_original ${catkin_LIBRARIES} ${OpenCV_LIBS} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} config render_common)
 
 
 

@@ -30,7 +30,6 @@
 #include <GL/gl.h>
 
 //Customed
-#include "mytypedef.h"
 #include "icosphere.h"
 #include "config.h"
 #include "render_common.h"
@@ -54,111 +53,33 @@ float alpha,beta,gama;
 bool change_Z_direction;
 float zDirection;
 
-
-// function declearation here firstly
-void saveImg(string filename, Mat& depth);
-bool writeBMP(string filename, unsigned char* data, unsigned int w, unsigned int h, Mat& depth);
 bool screenshot(string filename);
 
 
-// function defination here secondly
-void saveImg(string filename, Mat& depth)
-{
-	Mat img = imread(filename + ".bmp",CV_LOAD_IMAGE_GRAYSCALE);
-	Mat imgGray;
-	threshold(img, imgGray,80, 255,CV_THRESH_BINARY);
-	std::vector<std::vector<Point> >contours;
-	findContours(imgGray,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-	std::vector<Point> maxContours;
-	for (int i = 0; i < contours.size(); i++)
-	{
-		if (maxContours.size() < contours[i].size())
-		{
-			maxContours = contours[i];
-		}
-	}
-	if (maxContours.size())
-	{
-		Rect r0 = boundingRect(Mat(maxContours));
-		r0.x -= 3;
-		r0.y -= 3;
-		r0.width += 6;
-		r0.height += 6;
-		Mat rgbImg = img(r0);
-		Mat depImg  = depth(r0);
-		imwrite(filename + ".bmp",rgbImg);
-		WriteDepthDPT(filename, depImg);
-		WriteDepthPNG(filename, depImg);
-	}
-	else
-	{
-		std::cout << "failed to find Contours in " << filename + ".bmp" << std::endl;
-		exit(-1);
-	}
-
-	waitKey(5);
-}
-
-// save original rgb image rendered by OpenGL, and Crop it later to get a minimum template
-bool writeBMP(string filename, unsigned char* data, unsigned int w, unsigned int h, Mat& depth)
-{
-	std::ofstream out_file;
-	if(!data)  { std::cerr << "data corrupted! " << std::endl; out_file.close(); return false; }
-	BITMAPFILEHEADER header;
-	BITMAPINFOHEADER bitmapInfoHeader;
-	unsigned char textureColors = 0;
-	string nameImg = string(filename + ".bmp");
-	out_file.open(nameImg.c_str(), std::ios::out | std::ios::binary);
-	if (!out_file) { std::cerr << "Unable to open output file with name: " << nameImg << std::endl; return false; }
-	/** BITMAPFILEHEADER */
-	header.bfType = 0x4d42;
-	header.bfSize = w*h*3 + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-	header.bfReserved1 = 0;
-	header.bfReserved2 = 0;
-	header.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-	out_file.write((char*)&header, sizeof(BITMAPFILEHEADER));
-	/** BITMAPINFOHEADER */
-	bitmapInfoHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmapInfoHeader.biWidth = w;
-	bitmapInfoHeader.biHeight = h;
-	bitmapInfoHeader.biPlanes = 1;
-	bitmapInfoHeader.biBitCount = 24;
-	//bitmapInfoHeader.biCompression = BI_RGB; // BI_RLE4 BI_RLE8
-	bitmapInfoHeader.biCompression = 0;
-	bitmapInfoHeader.biSizeImage = w * h * 3;
-	bitmapInfoHeader.biYPelsPerMeter = 0;
-	bitmapInfoHeader.biClrUsed = 0;
-	bitmapInfoHeader.biClrImportant = 0;
-	out_file.write((char*)&bitmapInfoHeader, sizeof(BITMAPINFOHEADER));
-	out_file.seekp(header.bfOffBits, std::ios::beg);
-	out_file.write((char*)data, bitmapInfoHeader.biSizeImage);
-	out_file.close();
-	saveImg(filename, depth);
-	return true;
-}
-
 bool screenshot(string filename)
 {
-	GLenum lastBuffer; GLbyte* pBits = 0;
-	GLfloat* pBits2 = 0;
-	unsigned long lImageSize;
 	GLint iViewport[4];
 	glGetIntegerv(GL_VIEWPORT, iViewport);
-	lImageSize = iViewport[2] * iViewport[3] * 3;
+	int Img_width=iViewport[2];
+	int Img_height=iViewport[3];
+	unsigned long lImageSize = Img_width * Img_height * 3;
+
+	GLbyte* pBits = 0;
+	GLfloat* pBits2 = 0;
+	GLenum lastBuffer;
 	pBits = (GLbyte*)new unsigned char[lImageSize];
 	pBits2 = (GLfloat*)new float[lImageSize];
 	if (!pBits) return false;
 	if (!pBits2) return false;
-	// glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
 	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
 	glPixelStorei(GL_PACK_SKIP_ROWS, 0);
 	glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
 	glGetIntegerv(GL_READ_BUFFER, (GLint*)&lastBuffer);
 	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, iViewport[2], iViewport[3], GL_BGR_EXT, GL_UNSIGNED_BYTE, pBits);
-	glReadPixels(0, 0, iViewport[2], iViewport[3], GL_DEPTH_COMPONENT,GL_FLOAT, pBits2);
+	glReadPixels(0, 0, Img_width, Img_height, GL_BGR_EXT, GL_UNSIGNED_BYTE, pBits);
+	glReadPixels(0, 0, Img_width, Img_height, GL_DEPTH_COMPONENT,GL_FLOAT, pBits2);
 	glReadBuffer(lastBuffer);
-
 
 	GLint viewport[4];
 	GLdouble modelview[16];
@@ -168,34 +89,47 @@ bool screenshot(string filename)
 	glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 	glGetDoublev(GL_PROJECTION_MATRIX, projection);
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	float xc = r*cos(c*alpha)*cos(c*beta);
-	float yc = r*cos(c*alpha)*sin(c*beta);
-	float zc = r*sin(c*alpha);
-	cv::Mat depth = cv::Mat(480,640,CV_16UC1);
-	for(int i = 0; i < 480; i++)
+
+	cv::Mat color = cv::Mat(Img_height,Img_width,CV_8UC3);
+	for(int i = 0; i < Img_height; i++)
 	{
-		ushort* data = depth.ptr<ushort>(479-i);
-		for (int j = 0; j < 640; j++)
+		uchar* data = color.ptr<uchar>(i);
+		for (int j = 0; j < Img_width; j++)
+		{
+			data[3*j+0] = pBits[Img_width*i*3+3*j+0];
+			data[3*j+1] = pBits[Img_width*i*3+3*j+1];
+			data[3*j+2] = pBits[Img_width*i*3+3*j+2];
+		}
+	}
+	free(pBits);
+	// OpenGL origin is Left-Bottom, while OpenCV origin is Left-UP. flip color along X axis.
+	cv::flip(color,color,0);
+
+	cv::Mat depth = cv::Mat(Img_height,Img_width,CV_16UC1);
+	for(int i = 0; i < Img_height; i++)
+	{
+		ushort* data = depth.ptr<ushort>(i);
+		for (int j = 0; j < Img_width; j++)
 		{
 			winX = (float)j;
 			winY = (float)viewport[3] - (float)i;
-			winZ = pBits2[640*i+j];
+			winZ = pBits2[Img_width*i+j];
 			gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
-			//ushort d = sqrt((xc-posX)*(xc-posX) + (yc-posY)*(yc-posY) + (zc-posZ)*(zc-posZ));
-			//ushort d = sqrt((posX)*(posX) + (posY)*(posY) + (posZ)*(posZ));
 			ushort d = (ushort)-posZ;
 			d = d > 3500 ? 0 : d;
 			data[j] = (ushort)d;
 		}
 	}
 	free(pBits2);
-	if (writeBMP(filename, (unsigned char*)pBits, iViewport[2], iViewport[3], depth))
-	{
-		free(pBits);
+	// OpenGL origin is Left-Bottom, while OpenCV origin is Left-UP. flip depth along X axis.
+	cv::flip(depth,depth,0);
+
+	std::vector<cv::Mat> CroppedRGBD = GetCroppedRGBD(color, depth);
+
+	if (WriteColorBMP(filename, CroppedRGBD[0]) && WriteDepthPNG(filename, CroppedRGBD[1])) // && WriteDepthDPT(filename, CroppedRGBD[1]))
 		return true;
-	}
-	free(pBits);
-	return false;
+	else
+		return false;
 }
 
 struct Matrix44

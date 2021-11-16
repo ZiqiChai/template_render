@@ -61,7 +61,7 @@ stl_folder_name: stl
 stl_file_name: PVC_3hole_40mm.stl
 
 ## output path /data/templates/object_name/template_image_folder_name
-template_folder_name: ../data/New_templates/PVC_3hole_40mm/PVC-ICO-6D/PVC_ICO5_r300-475-25-r8_gamma-30-30-15-g5_Z-NOT-change_mmdeg/PVC_3hole_40mm
+template_folder_name: ../data/templates/PVC_3hole_40mm/PVC-ICO-6D/PVC_ICO5_r300-475-25-r8_gamma-30-30-15-g5_Z-NOT-change_mmdeg/PVC_3hole_40mm
 
 ## for icosphere , octsphere
 ## XML used to store coordinates of  icosohedron, octsphere

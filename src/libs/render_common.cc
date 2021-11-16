@@ -112,7 +112,6 @@ bool WriteDepth(cv::Mat& depth, std::string filename)
 	return true;
 }
 
-
 bool WriteDepthDPT(std::string filename, cv::Mat& depth)
 {
 	if (depth.type() != CV_16UC1)
@@ -142,7 +141,6 @@ bool WriteDepthDPT(std::string filename, cv::Mat& depth)
 	return true;
 }
 
-
 bool WriteDepthPNG(std::string filename, cv::Mat& depth)
 {
 	if (depth.type() == CV_16UC1)
@@ -157,6 +155,19 @@ bool WriteDepthPNG(std::string filename, cv::Mat& depth)
 	}
 }
 
+bool WriteColorBMP(std::string filename, cv::Mat& color)
+{
+	if (color.type() == CV_8UC3)
+	{
+		cv::imwrite(filename + ".bmp", color);
+		return true;
+	}
+	else
+	{
+		std::cout << "color image type is not CV_8UC3!" << std::endl;
+		exit(-1);
+	}
+}
 
 int STLRead(std::string nameStl, std::vector<GLdouble> &vertices, std::vector<GLdouble> &normal_vectors)
 {
@@ -207,7 +218,6 @@ int STLRead(std::string nameStl, std::vector<GLdouble> &vertices, std::vector<GL
 	return 0;
 }
 
-
 void IcospherePointWrite(Eigen::Vector3f vec, cv::FileStorage& fs)
 {
 	fs<<"[:" << vec[0] << vec[1] << vec[2] << "]";
@@ -227,111 +237,80 @@ void IcosphereWrite(float& radius, int& num_templates_on_one_sphere, float& angl
 	fs<<"]";
 }
 
+std::vector<cv::Mat> GetCroppedRGBD(cv::Mat color, cv::Mat depth)
+{
+	cv::Mat imgGray;
+	cv::threshold(color, imgGray,80, 255,CV_THRESH_BINARY);
+	std::vector<std::vector<cv::Point> > contours;
+	cv::findContours(imgGray,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+	std::vector<cv::Point> maxContours;
+	for (int i = 0; i < contours.size(); i++)
+	{
+		if (maxContours.size() < contours[i].size())
+		{
+			maxContours = contours[i];
+		}
+	}
+	if (maxContours.size())
+	{
+		cv::Rect r0 = cv::boundingRect(cv::Mat(maxContours));
+		r0.x -= 3;
+		r0.y -= 3;
+		r0.width += 6;
+		r0.height += 6;
+		cv::Mat Cropped_rgbImg = color(r0);
+		cv::Mat Cropped_depImg  = depth(r0);
+		std::vector<cv::Mat> res;
+		res.push_back(Cropped_rgbImg);
+		res.push_back(Cropped_depImg);
+		return res;
+	}
+	else
+	{
+		std::cout << "failed to find contours!" << std::endl;
+		exit(-1);
+	}
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// int screen2world(int x, int y)
-// {
-// 	GLint viewport[4];
-// 	GLdouble modelview[16];
-// 	GLdouble projection[16];
-// 	GLfloat winX, winY, winZ;
-// 	GLdouble posX, posY, posZ;
-// 	glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-// 	glGetDoublev(GL_PROJECTION_MATRIX, projection);
-// 	glGetIntegerv(GL_VIEWPORT, viewport);
-// 	for(int i = 0; i < 3; i++)
-// 	{
-// 		for (int j = 0; j < 3; j++)
-// 		{
-// 			winX = (float)i;
-// 			winY = (float)viewport[3] - (float)j;
-// 			glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-// 			gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
-// 			std::cout<<"posX"<<posX<<" ";
-// 		}
-// 	}
-// 	std::cout<<std::endl<<"done!";
-// 	getchar();
-// 	return posZ;
-// }
-
-// void RenderScene_XYZG()
-// {
-// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-// 	glLoadIdentity();
-// 	glPushMatrix();
-
-// 	//gluLookAt(r*cos(c*du), r*sin(c*du), h, 0, 0, 0, -1*r*cos(c*du)/h,   -1*r*sin(c*du)/h,1);
-// 	gluLookAt(xc, yc, zc, 0, 0, 0, -zc*xc/(xc*xc+yc*yc),  -zc*yc/(xc*xc+yc*yc),1);
-// 	/*gluLookAt(r*cos(c*alpha)*cos(c*beta), r*cos(c*alpha)*sin(c*beta), r*sin(c*alpha), 0, 0, 0, -1*tan(c*alpha)*cos(c*beta),  -1*tan(c*alpha)*sin(c*beta),1); */
-
-// 	glMatrixMode(GL_PROJECTION);
-// 	glLoadMatrixf(projectionMatrix.data);
-// 	glMatrixMode(GL_MODELVIEW);
-// 	int normal_size=normal_vectors.size();
-// 	for(int i=0;i<normal_size;i=i+3)
-// 	{
-// 		glBegin(GL_TRIANGLES);
-// 		GLdouble VertorArr3[]={normal_vectors[i],normal_vectors[i+1],normal_vectors[i+2]};
-// 		glNormal3dv(VertorArr3);
-// 		for(int j=3*i;j<(i+3)*3-1;j=j+3)
-// 		{
-// 			GLdouble VertexArr3[]={vertices[j],vertices[j+1],vertices[j+2]};
-// 			glVertex3dv(VertexArr3);
-// 		}
-// 		glEnd();
-// 	}
-// 	glFlush();
-// 	glPopMatrix();
-// 	glutSwapBuffers();
-// }
+std::vector<cv::Mat> GetCroppedRGBD(cv::Mat color, cv::Mat depth, int desired_width, int desired_height)
+{
+	cv::Mat imgGray;
+	cv::threshold(color, imgGray,80, 255,CV_THRESH_BINARY);
+	std::vector<std::vector<cv::Point> > contours;
+	cv::findContours(imgGray,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+	std::vector<cv::Point> maxContours;
+	for (int i = 0; i < contours.size(); i++)
+	{
+		if (maxContours.size() < contours[i].size())
+		{
+			maxContours = contours[i];
+		}
+	}
+	if (maxContours.size())
+	{
+		cv::Rect r0 = cv::boundingRect(cv::Mat(maxContours));
+		if (r0.width<desired_width)
+		{
+			r0.x -= int((desired_width-r0.width)/2);
+			if (r0.x<0){r0.x=0;}
+		}
+		if (r0.height<desired_height)
+		{
+			r0.y -= int((desired_height-r0.height)/2);
+			if (r0.y<0){r0.y=0;}
+		}
+		r0.width = desired_width;
+		r0.height = desired_height;
+		cv::Mat Cropped_rgbImg = color(r0);
+		cv::Mat Cropped_depImg  = depth(r0);
+		std::vector<cv::Mat> res;
+		res.push_back(Cropped_rgbImg);
+		res.push_back(Cropped_depImg);
+		return res;
+	}
+	else
+	{
+		std::cout << "failed to find contours!" << std::endl;
+		exit(-1);
+	}
+}
