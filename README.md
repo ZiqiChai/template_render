@@ -8,7 +8,7 @@
 
 2. ICO Sphere Render：用于通过ICO对球面划分，进行渲染视点信息采样，进而在每个视点渲染6D自由度模板（彩色图和深度图）。模板视点参数为：r,number,gamma。
 
-3. ICO Sphere Render：用于通过OCT对球面划分，进行渲染视点信息采样，进而在每个视点渲染6D自由度模板（彩色图和深度图）。模板视点参数为：r,number,gamma。
+3. OCT Sphere Render：用于通过OCT对球面划分，进行渲染视点信息采样，进而在每个视点渲染6D自由度模板（彩色图和深度图）。模板视点参数为：r,number,gamma。
 
 4. Random Generation：用于生成随机分布的测试样例。
 

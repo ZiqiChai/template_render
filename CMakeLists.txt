@@ -53,7 +53,7 @@ catkin_package(
   CATKIN_DEPENDS roscpp rospy roslib std_msgs
 )
 
-#ADD_LIBRARY(config STATIC src/libs/config.cc)
+ADD_LIBRARY(config STATIC src/libs/config.cc)
 ADD_LIBRARY(render_common STATIC src/libs/render_common.cc)
 
 
